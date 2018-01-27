@@ -1,0 +1,181 @@
+package com.example.android;
+
+/**
+ * This is the code that changes through the colors.
+ * It may be hard to understand for beginners so I added some comments (Sorry if they don't explain everything clearly).
+ * I made this using some of my Java knowledge and the awesome course from Udacity.
+ */
+
+import android.graphics.Color;
+import android.support.v7.app.AppCompatActivity;
+
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
+
+public class MainActivity extends AppCompatActivity {
+    /**
+     * These variables are used to get the RGB values from them. (I got these values online).
+     */
+    //R
+    static int red = Color.rgb(255, 0, 0);
+    //G
+    static int orange = Color.rgb(255, 127, 0);
+    static int yellow = Color.rgb(255, 255, 0);
+    static int green = Color.rgb(0, 255, 0);
+    //B
+    static int blue = Color.rgb(0, 0, 255);
+    static int indigo = Color.rgb(75, 0, 130);
+    static int violet = Color.rgb(150, 0, 210);
+
+    /**
+     * These are used for the cycle method.
+     */
+    int current = red;
+    int stage = 1;
+
+    /**
+     * This boolean (true/false) is used later in the code (Toggling the color cycle on or off).
+     */
+
+    boolean shouldCycle = true;
+
+    /**
+     * This is the "Happy Birthday, Friend!" TextView. It is global because I am using it in multiple methods.
+     */
+    TextView happy_birthday_textview;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        /**
+         *  Declaring the TextView's value.
+         */
+        happy_birthday_textview = (TextView) findViewById(R.id.happy_birthday);
+        /**
+         *  Calling the ASyncTask class (More on that later).
+         */
+        new Cycler().execute();
+    }
+
+    /**
+     * This method is called by the TOGGLE button.
+     */
+    void toggle(View view) {
+        /**
+         * Sets shouldCycle's value to its opposite. (True -> False, False -> True).
+         * !true = false
+         * !false = true
+         */
+        shouldCycle = !shouldCycle;
+    }
+
+    /**
+     * This is the method where all the magic happens :D
+     */
+    void cycle() {
+        /**
+         * The RGB values are from the current color.
+         */
+        int r = Color.red(current);
+        int g = Color.green(current);
+        int b = Color.blue(current);
+        /**
+         * Checks which stage the color cycle is currently in. (6 stages in total)
+         */
+        switch (stage) {
+            //Stage 0: This stage is only called when the loop is over and it is restarting. FUNCTION: resets the color to red.
+            case 0:
+                if (b > 0)
+                    b -= 5;
+                if (r < Color.red(red))
+                    r += 5;
+                if (r == Color.red(red) && b == 0 && g == 0)
+                    stage = 1;
+                break;
+            //Stage 1: FUNCTION: changes the green value from 0 -> 255, note that 127 value is not used because 0 -> 127 -> 255 is the same as 0 -> 255.
+            case 1:
+                g += 5;
+                if (g == Color.green(yellow))
+                    stage = 2;
+                break;
+            //Stage 2: FUNCTION: removes the red value from the color.
+            case 2:
+                r -= 5;
+                if (r == 0)
+                    stage = 3;
+                break;
+            //Stage 3: FUNCTION: removes the green and adds blue.
+            case 3:
+                g -= 5;
+                b += 5;
+                if (b == Color.blue(blue))
+                    stage = 4;
+                break;
+            //Stage 4: FUNCTION: adds red and removes some blue.
+            case 4:
+                b -= 5;
+                r += 5;
+                if (b == Color.blue(indigo))
+                    stage = 5;
+                break;
+            //Stage 5: FUNCTION: when the blue reaches a certain point, it changes from removing some blue to adding it until
+            //it reaches a certain point which makes it reset.
+            case 5:
+                b += 5;
+                r += 5;
+                if (b == Color.blue(violet))
+                    stage = 0;
+                break;
+        }
+        /**
+         * Whatever the stage was, do the following:
+         * - Change the current RGB values to the changed ones through stages.
+         * - Set the TextView's color to the current color.
+         */
+
+        current = Color.rgb(r, g, b);
+        happy_birthday_textview.setTextColor(current);
+
+    }
+
+    /**
+     * This is the AsyncTask class. This is used to have loops in your code without stopping your app from functioning.
+     */
+
+    private class Cycler extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            /**
+             * This is a while loop. It has true between the () because I want it to cycle forever.
+             * I didn't put "shouldCycle" in it because if that variable is set to false, I would
+             * need to restart the AsyncTask later.
+             * So I put it to always run the code inside it.
+             */
+            while (true) {
+                /**
+                 * This is the line where it checks if the user wants to cycle through the colors.
+                 */
+                if (shouldCycle) {
+                    /**
+                     * If so, it calles the method  which changes the color. Because this is in a loop
+                     * and the delay is small, the colors get changed rapidly and look like an animation.
+                     */
+                    cycle();
+                    /**
+                     * These lines are to delay the app 1ms.
+                     */
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+}
